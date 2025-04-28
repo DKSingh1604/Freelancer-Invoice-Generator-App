@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String nickname;
@@ -16,6 +17,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final userId = Supabase.instance.client.auth.currentUser?.id ?? 'N/A';
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -89,6 +92,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           label: 'Company',
                           value: widget.company,
                           icon: Icons.business,
+                        ),
+                        const SizedBox(height: 18),
+                        _ProfileField(
+                          label: 'User ID',
+                          value: userId,
+                          icon: Icons.vpn_key,
                         ),
                       ],
                     ),

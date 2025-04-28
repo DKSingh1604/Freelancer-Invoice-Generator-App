@@ -15,6 +15,14 @@ class AuthRepository {
         email: email,
         password: password,
       );
+      //add new user to the users table
+      if (response.user != null) {
+        await _supabase.from('users').insert({
+          'id': response.user!.id,
+          'email': email,
+          // Add other default fields if needed
+        });
+      }
       return response;
     } on AuthException catch (e) {
       throw Exception(e.message);
@@ -32,6 +40,15 @@ class AuthRepository {
         email: email,
         password: password,
       );
+      //fetch the user
+      if (response.user != null) {
+        final profile =
+            await _supabase
+                .from('users')
+                .select()
+                .eq('id', response.user!.id)
+                .single();
+      }
       return response;
     } on AuthException catch (e) {
       throw Exception(e.message);

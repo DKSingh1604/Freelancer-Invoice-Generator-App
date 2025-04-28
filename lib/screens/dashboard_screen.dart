@@ -9,7 +9,6 @@ import 'package:fig_app/screens/settings_screen.dart';
 import 'package:fig_app/utils/client_card.dart';
 import 'package:fig_app/utils/invoice_tile.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String nickname;
@@ -119,7 +118,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
-                children: const [
+                children: [
                   CircleAvatar(
                     radius: 32,
                     backgroundColor: Colors.white,
@@ -131,7 +130,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   SizedBox(height: 12),
                   Text(
-                    'User Profile',
+                    'Welcome back, ${widget.nickname}!',
                     style: TextStyle(
                       color: Colors.deepPurple,
                       fontWeight: FontWeight.bold,
@@ -239,24 +238,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ? const Center(
                                     child: Text('No clients found'),
                                   )
-                                  : ListView.builder(
-                                    itemCount: clients.length,
-                                    itemBuilder:
-                                        (context, index) =>
-                                            ClientCard(client: clients[index]),
-                                  ),
+                                  : (() {
+                                    final sortedClients = List<Client>.from(
+                                      clients,
+                                    )..sort(
+                                      (a, b) => a.name.toLowerCase().compareTo(
+                                        b.name.toLowerCase(),
+                                      ),
+                                    );
+                                    return ListView.builder(
+                                      itemCount: sortedClients.length,
+                                      itemBuilder:
+                                          (context, index) => ClientCard(
+                                            client: sortedClients[index],
+                                          ),
+                                    );
+                                  })(),
                               //INVOICES TAB
                               invoices.isEmpty
                                   ? const Center(
                                     child: Text('No invoices found'),
                                   )
-                                  : ListView.builder(
-                                    itemCount: invoices.length,
-                                    itemBuilder:
-                                        (context, index) => InvoiceTile(
-                                          invoice: invoices[index],
-                                        ),
-                                  ),
+                                  : (() {
+                                    final sortedInvoices = List<Invoice>.from(
+                                      invoices,
+                                    )..sort(
+                                      (a, b) =>
+                                          b.createdAt.compareTo(a.createdAt),
+                                    );
+                                    return ListView.builder(
+                                      itemCount: sortedInvoices.length,
+                                      itemBuilder:
+                                          (context, index) => InvoiceTile(
+                                            invoice: sortedInvoices[index],
+                                          ),
+                                    );
+                                  })(),
                             ],
                           ),
                 ),

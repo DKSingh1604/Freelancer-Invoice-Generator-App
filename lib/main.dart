@@ -1,3 +1,4 @@
+import 'package:fig_app/screens/dashboard_screen.dart';
 import 'package:fig_app/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -10,11 +11,30 @@ void main() async {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3dmtqdXpnaXZ5ZHl0YXBlemJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2NTUxODYsImV4cCI6MjA2MTIzMTE4Nn0.r4FuYuyqpndtiyoWf_qZilL-EHeNbmf_YnUJlDus7A0',
     url: 'https://ywvkjuzgivydytapezbp.supabase.co',
   );
-  runApp(const MyApp());
+  final user = Supabase.instance.client.auth.currentUser;
+  Map<String, dynamic>? userProfile;
+  if (user != null) {
+    final response = await Supabase.instance.client
+        .from('users')
+        .select()
+        .eq('id', user.id);
+
+    if (response == null) {
+      print('No user profile found for user ID: ${user.id}');
+    } else {
+      print('User ID: ${user.id}');
+      print('User profile: $response');
+    }
+    userProfile =
+        response.isNotEmpty ? response.first as Map<String, dynamic> : null;
+  }
+  runApp(MyApp(isLoggedIn: user != null, userProfile: userProfile));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLoggedIn;
+  final Map<String, dynamic>? userProfile;
+  const MyApp({super.key, required this.isLoggedIn, required this.userProfile});
 
   @override
   Widget build(BuildContext context) {
@@ -186,7 +206,14 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const LoginScreen(),
+      home:
+          isLoggedIn
+              ? DashboardScreen(
+                nickname: userProfile?['nickname'] ?? '',
+                fullname: userProfile?['full_name'] ?? '',
+                company: userProfile?['company'] ?? '',
+              )
+              : LoginScreen(),
     );
   }
 }
