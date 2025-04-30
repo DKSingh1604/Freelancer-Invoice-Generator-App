@@ -1,4 +1,5 @@
 import 'package:fig_app/screens/dashboard_screen.dart';
+import 'package:fig_app/screens/get_details_screen.dart';
 import 'package:fig_app/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -13,28 +14,45 @@ void main() async {
   );
   final user = Supabase.instance.client.auth.currentUser;
   Map<String, dynamic>? userProfile;
-  if (user != null) {
-    final response = await Supabase.instance.client
-        .from('users')
-        .select()
-        .eq('id', user.id);
+  bool showGetDetailsScreen = false;
 
-    if (response == null) {
-      print('No user profile found for user ID: ${user.id}');
-    } else {
-      print('User ID: ${user.id}');
-      print('User profile: $response');
+  if (user != null) {
+    final response =
+        await Supabase.instance.client
+            .from('users')
+            .select()
+            .eq('id', user.id)
+            .maybeSingle();
+    userProfile = response;
+    // If the user exists but has no nickname/full_name/company, show GetDetailsScreen
+    if (userProfile == null ||
+        (userProfile['nickname'] == null || userProfile['nickname'].isEmpty) ||
+        (userProfile['full_name'] == null ||
+            userProfile['full_name'].isEmpty) ||
+        (userProfile['company'] == null || userProfile['company'].isEmpty)) {
+      showGetDetailsScreen = true;
     }
-    userProfile =
-        response.isNotEmpty ? response.first as Map<String, dynamic> : null;
   }
-  runApp(MyApp(isLoggedIn: user != null, userProfile: userProfile));
+
+  runApp(
+    MyApp(
+      isLoggedIn: user != null,
+      userProfile: userProfile,
+      showGetDetailsScreen: showGetDetailsScreen,
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   final bool isLoggedIn;
   final Map<String, dynamic>? userProfile;
-  const MyApp({super.key, required this.isLoggedIn, required this.userProfile});
+  final bool showGetDetailsScreen;
+  const MyApp({
+    super.key,
+    required this.isLoggedIn,
+    required this.userProfile,
+    required this.showGetDetailsScreen,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -208,12 +226,14 @@ class MyApp extends StatelessWidget {
       ),
       home:
           isLoggedIn
-              ? DashboardScreen(
-                nickname: userProfile?['nickname'] ?? '',
-                fullname: userProfile?['full_name'] ?? '',
-                company: userProfile?['company'] ?? '',
-              )
-              : LoginScreen(),
+              ? (showGetDetailsScreen
+                  ? const GetDetailsScreen()
+                  : DashboardScreen(
+                    nickname: userProfile?['nickname'] ?? '',
+                    fullname: userProfile?['full_name'] ?? '',
+                    company: userProfile?['company'] ?? '',
+                  ))
+              : const LoginScreen(),
     );
   }
 }

@@ -3,6 +3,8 @@ import 'package:fig_app/models/invoice_model.dart';
 import 'package:fig_app/repositories/auth_repository.dart';
 import 'package:fig_app/repositories/client_repository.dart';
 import 'package:fig_app/repositories/invoice_repository.dart';
+import 'package:fig_app/screens/client_add_screen.dart';
+import 'package:fig_app/screens/invoice_add_screen.dart';
 import 'package:fig_app/screens/login_screen.dart';
 import 'package:fig_app/screens/profile_screen.dart';
 import 'package:fig_app/screens/settings_screen.dart';
@@ -147,14 +149,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 // Navigate to profile
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder:
-                        (context) => ProfileScreen(
-                          nickname: widget.nickname,
-                          fullname: widget.fullname,
-                          company: widget.company,
-                        ),
-                  ),
+                  MaterialPageRoute(builder: (context) => ProfileScreen()),
                 );
               },
             ),
@@ -281,11 +276,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           _ExpandableAddButton(
-            onAddInvoice: () {
-              // TODO: Navigate to create invoice screen
+            onAddInvoice: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const InvoiceAddScreen(),
+                ),
+              );
+              if (result == true) {
+                setState(() {
+                  _loading = true;
+                });
+                await _fetchData();
+              }
             },
-            onAddClient: () {
-              // TODO: Navigate to add client screen
+            onAddClient: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ClientAddScreen(),
+                ),
+              );
+              if (result == true) {
+                setState(() {
+                  _loading = true;
+                });
+                await _fetchData();
+              }
             },
           ),
         ],
@@ -435,10 +452,7 @@ class _ExpandableAddButtonState extends State<_ExpandableAddButton>
                   child: Visibility(
                     visible: _expanded,
                     child: GestureDetector(
-                      onTap: () {
-                        _toggle();
-                        widget.onAddClient();
-                      },
+                      onTap: widget.onAddClient,
                       child: _ActionButton(
                         icon: Icons.person_add,
                         label: 'Add Client',

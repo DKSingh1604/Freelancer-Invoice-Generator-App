@@ -2,15 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final String nickname;
-  final String fullname;
-  final String company;
-  const ProfileScreen({
-    super.key,
-    required this.nickname,
-    required this.fullname,
-    required this.company,
-  });
+  const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -18,11 +10,36 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final userId = Supabase.instance.client.auth.currentUser?.id ?? 'N/A';
+  Map<String, dynamic>? userProfile;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserProfile();
+  }
+
+  Future<void> _fetchUserProfile() async {
+    if (userId == 'N/A') return;
+    final response =
+        await Supabase.instance.client
+            .from('users')
+            .select()
+            .eq('id', userId)
+            .maybeSingle();
+    setState(() {
+      userProfile = response;
+      _loading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final cardWidth = size.width * 0.9 > 400 ? 400.0 : size.width * 0.9;
+    if (_loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
@@ -78,19 +95,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         _ProfileField(
                           label: 'Nickname',
-                          value: widget.nickname,
+                          value: userProfile?['nickname'] ?? 'N/A',
                           icon: Icons.tag_faces,
                         ),
                         const SizedBox(height: 18),
                         _ProfileField(
                           label: 'Full Name',
-                          value: widget.fullname,
+                          value: userProfile?['full_name'] ?? 'N/A',
                           icon: Icons.person,
                         ),
                         const SizedBox(height: 18),
                         _ProfileField(
                           label: 'Company',
-                          value: widget.company,
+                          value: userProfile?['company'] ?? 'N/A',
                           icon: Icons.business,
                         ),
                         const SizedBox(height: 18),
@@ -98,6 +115,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           label: 'User ID',
                           value: userId,
                           icon: Icons.vpn_key,
+                        ),
+                        const SizedBox(height: 18),
+                        _ProfileField(
+                          label: 'Created At',
+                          value:
+                              userProfile?['created_at'] != null
+                                  ? DateTime.tryParse(
+                                            userProfile!['created_at'],
+                                          ) !=
+                                          null
+                                      ? DateTime.parse(
+                                        userProfile!['created_at'],
+                                      ).toLocal().toString().split('.').first
+                                      : userProfile!['created_at']
+                                  : '',
+                          icon: Icons.calendar_today,
                         ),
                       ],
                     ),

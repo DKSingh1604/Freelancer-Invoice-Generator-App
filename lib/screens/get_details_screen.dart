@@ -1,5 +1,6 @@
 import 'package:fig_app/screens/dashboard_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GetDetailsScreen extends StatefulWidget {
   const GetDetailsScreen({super.key});
@@ -41,17 +42,25 @@ class _GetDetailsScreenState extends State<GetDetailsScreen> {
     super.dispose();
   }
 
-  void _nextStep() {
+  void _nextStep() async {
     final answer = _controller.text.trim();
     if (answer.isEmpty) return;
-    setState(() {
+    setState(() async {
       _answers[_steps[_currentStep].key] = answer;
       _controller.clear();
       if (_currentStep < _steps.length - 1) {
         _currentStep++;
       } else {
-        // All done, you can handle the collected data here
-        // For now, just show a dialog
+        // All done, upload to Supabase
+        final user = Supabase.instance.client.auth.currentUser;
+        if (user != null) {
+          await Supabase.instance.client.from('users').upsert({
+            'id': user.id,
+            'nickname': _answers['nickname'] ?? '',
+            'full_name': _answers['fullname'] ?? '',
+            'company': _answers['company'] ?? '',
+          });
+        }
         showDialog(
           context: context,
           builder:
@@ -93,7 +102,7 @@ class _GetDetailsScreenState extends State<GetDetailsScreen> {
                     ),
                     onPressed: () {
                       Navigator.of(context).pop();
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                           builder:
@@ -127,7 +136,6 @@ class _GetDetailsScreenState extends State<GetDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(

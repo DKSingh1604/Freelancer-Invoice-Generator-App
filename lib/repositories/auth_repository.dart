@@ -20,7 +20,7 @@ class AuthRepository {
         await _supabase.from('users').insert({
           'id': response.user!.id,
           'email': email,
-          // Add other default fields if needed
+          'created_at': DateTime.now().toUtc().toIso8601String(),
         });
       }
       return response;
@@ -47,12 +47,13 @@ class AuthRepository {
                 .from('users')
                 .select()
                 .eq('id', response.user!.id)
-                .single();
+                .maybeSingle(); // Use maybeSingle to avoid exception if no row
       }
       return response;
     } on AuthException catch (e) {
       throw Exception(e.message);
     } catch (e) {
+      print("Error: $e");
       throw Exception('An unknown error occurred during sign in.');
     }
   }
