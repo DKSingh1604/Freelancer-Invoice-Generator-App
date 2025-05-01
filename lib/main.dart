@@ -24,7 +24,7 @@ void main() async {
             .eq('id', user.id)
             .maybeSingle();
     userProfile = response;
-    // If the user exists but has no nickname/full_name/company, show GetDetailsScreen
+
     if (userProfile == null ||
         (userProfile['nickname'] == null || userProfile['nickname'].isEmpty) ||
         (userProfile['full_name'] == null ||

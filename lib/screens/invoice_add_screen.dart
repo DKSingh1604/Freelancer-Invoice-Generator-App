@@ -19,6 +19,7 @@ class _InvoiceAddScreenState extends State<InvoiceAddScreen> {
   List<Map<String, dynamic>> _clients = [];
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _noteController = TextEditingController();
   String _selectedStatus = 'yet to start';
   final List<String> _statusOptions = [
     'yet to start',
@@ -69,6 +70,7 @@ class _InvoiceAddScreenState extends State<InvoiceAddScreen> {
         'status': _selectedStatus,
         'due_date': _selectedDueDate?.toIso8601String(),
         'user_id': userId,
+        'notes': _noteController.text.trim(),
       });
       Navigator.pop(context, true);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -255,6 +257,15 @@ class _InvoiceAddScreenState extends State<InvoiceAddScreen> {
                                           : null,
                             ),
                             const SizedBox(height: 18),
+                            TextFormField(
+                              controller: _noteController,
+                              decoration: const InputDecoration(
+                                labelText: 'Note (optional)',
+                                prefixIcon: Icon(Icons.note_alt_outlined),
+                              ),
+                              maxLines: 2,
+                            ),
+                            const SizedBox(height: 18),
                             DropdownButtonFormField<String>(
                               value: _selectedStatus,
                               items:
@@ -418,6 +429,7 @@ class _InvoiceAddScreenState extends State<InvoiceAddScreen> {
   void dispose() {
     _amountController.dispose();
     _descriptionController.dispose();
+    _noteController.dispose();
     super.dispose();
   }
 }

@@ -8,10 +8,15 @@ class InvoiceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final isOverdue =
+        invoice.dueDate != null &&
+        invoice.dueDate!.isBefore(DateTime(now.year, now.month, now.day));
     return Card(
       elevation: 6,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      color: isOverdue ? const Color.fromARGB(255, 245, 153, 162) : null,
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: () {
@@ -50,7 +55,7 @@ class InvoiceTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Invoice #${invoice.id?.substring(0, 6) ?? ''}...',
+                      '#${invoice.id?.substring(0, 8) ?? ''}...',
                       style: TextStyle(
                         color: Colors.grey.shade700,
                         fontSize: 13,

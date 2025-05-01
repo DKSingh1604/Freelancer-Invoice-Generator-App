@@ -4,7 +4,7 @@ class Client {
   final String email;
   final String phone;
   final String? company;
-  final String? userId; //not to be shown on client's details page
+  final String? userId;
   final String? address;
   final String? city;
   final String? state;

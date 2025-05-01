@@ -309,56 +309,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-
-  void _showMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white.withOpacity(0.93),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder:
-          (context) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.person, color: Colors.deepPurple),
-                  title: const Text('Profile'),
-                  onTap: () {
-                    // Navigate to profile
-                    Navigator.pop(context);
-                    // Add your navigation logic here
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.settings, color: Colors.deepPurple),
-                  title: const Text('Settings'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Add your navigation logic here
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.logout, color: Colors.deepPurple),
-                  title: const Text('Logout'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _authRepository.signOut();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-    );
-  }
 }
 
 class _ExpandableAddButton extends StatefulWidget {

@@ -23,7 +23,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     emit(DashboardLoadInProgress());
     try {
       final clients = await clientRepo.fetchClients();
-      final invoices = await invoiceRepo.fetchRecentInvoices(limit: 5);
+      final invoices = await invoiceRepo.fetchRecentInvoices();
       emit(DashboardLoadSuccess(clients: clients, recentInvoices: invoices));
     } catch (e) {
       emit(DashboardLoadFailure(e.toString()));

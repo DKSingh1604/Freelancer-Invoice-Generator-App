@@ -45,85 +45,87 @@ class _GetDetailsScreenState extends State<GetDetailsScreen> {
   void _nextStep() async {
     final answer = _controller.text.trim();
     if (answer.isEmpty) return;
-    setState(() async {
+    final isLastStep = _currentStep == _steps.length - 1;
+    setState(() {
       _answers[_steps[_currentStep].key] = answer;
       _controller.clear();
-      if (_currentStep < _steps.length - 1) {
+      if (!isLastStep) {
         _currentStep++;
-      } else {
-        // All done, upload to Supabase
-        final user = Supabase.instance.client.auth.currentUser;
-        if (user != null) {
-          await Supabase.instance.client.from('users').upsert({
-            'id': user.id,
-            'nickname': _answers['nickname'] ?? '',
-            'full_name': _answers['fullname'] ?? '',
-            'company': _answers['company'] ?? '',
-          });
-        }
-        showDialog(
-          context: context,
-          builder:
-              (context) => AlertDialog(
-                backgroundColor: Colors.deepPurple.shade50,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  side: BorderSide(color: Colors.deepPurple.shade200, width: 2),
-                ),
-                title: Row(
-                  children: [
-                    Icon(Icons.celebration, color: Colors.deepPurple, size: 28),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Thank you!',
-                      style: TextStyle(
-                        color: Colors.deepPurple,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                content: Text(
-                  "Details saved! \n\nNickname: '${_answers['nickname']}'\nFull Name: '${_answers['fullname']}'\nCompany: '${_answers['company']}'\n\n[Details can be changed in future.]",
-                  style: const TextStyle(fontSize: 16, color: Colors.black87),
-                ),
-                actions: [
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.deepPurple,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 10,
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => DashboardScreen(
-                                nickname: _answers['nickname'] ?? '',
-                                fullname: _answers['fullname'] ?? '',
-                                company: _answers['company'] ?? '',
-                              ),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'OK',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+      }
+    });
+    if (isLastStep) {
+      // All done, upload to Supabase
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        await Supabase.instance.client.from('users').upsert({
+          'id': user.id,
+          'nickname': _answers['nickname'] ?? '',
+          'full_name': _answers['fullname'] ?? '',
+          'company': _answers['company'] ?? '',
+        });
+      }
+      showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              backgroundColor: Colors.deepPurple.shade50,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+                side: BorderSide(color: Colors.deepPurple.shade200, width: 2),
+              ),
+              title: Row(
+                children: [
+                  Icon(Icons.celebration, color: Colors.deepPurple, size: 28),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Thank you!',
+                    style: TextStyle(
+                      color: Colors.deepPurple,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
               ),
-        );
-      }
-    });
+              content: Text(
+                "Details saved! \n\nNickname: '${_answers['nickname']}'\nFull Name: '${_answers['fullname']}'\nCompany: '${_answers['company']}'\n\n[Details can be changed in future.]",
+                style: const TextStyle(fontSize: 16, color: Colors.black87),
+              ),
+              actions: [
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.deepPurple,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 10,
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => DashboardScreen(
+                              nickname: _answers['nickname'] ?? '',
+                              fullname: _answers['fullname'] ?? '',
+                              company: _answers['company'] ?? '',
+                            ),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'OK',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+      );
+    }
     // Scroll to bottom for new message
     Future.delayed(const Duration(milliseconds: 200), () {
       _scrollController.animateTo(
@@ -152,6 +154,31 @@ class _GetDetailsScreenState extends State<GetDetailsScreen> {
             ),
           ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) => const DashboardScreen(
+                        nickname: '',
+                        fullname: '',
+                        company: '',
+                      ),
+                ),
+              );
+            },
+            child: const Text(
+              'Skip',
+              style: TextStyle(
+                color: Colors.deepPurple,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ],
       ),
       body: Stack(
         children: [

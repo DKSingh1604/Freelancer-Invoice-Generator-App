@@ -12,25 +12,106 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final userId = Supabase.instance.client.auth.currentUser?.id ?? 'N/A';
   Map<String, dynamic>? userProfile;
   bool _loading = true;
+  bool _editMode = false;
+  bool _saving = false;
+  late TextEditingController _nicknameController;
+  late TextEditingController _fullnameController;
+  late TextEditingController _companyController;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
+    debugPrint('ProfileScreen: initState');
+    _nicknameController = TextEditingController();
+    _fullnameController = TextEditingController();
+    _companyController = TextEditingController();
     _fetchUserProfile();
   }
 
+  @override
+  void dispose() {
+    debugPrint('ProfileScreen: dispose');
+    _nicknameController.dispose();
+    _fullnameController.dispose();
+    _companyController.dispose();
+    super.dispose();
+  }
+
   Future<void> _fetchUserProfile() async {
+    debugPrint(
+      'ProfileScreen: _fetchUserProfile called for userId: '
+      '[32m$userId[0m',
+    );
     if (userId == 'N/A') return;
-    final response =
-        await Supabase.instance.client
-            .from('users')
-            .select()
-            .eq('id', userId)
-            .maybeSingle();
+    try {
+      final response =
+          await Supabase.instance.client
+              .from('users')
+              .select()
+              .eq('id', userId)
+              .single();
+      if (response != null) {
+        setState(() {
+          _nicknameController.text = response['nickname'] ?? '';
+          _fullnameController.text = response['full_name'] ?? '';
+          _companyController.text = response['company'] ?? '';
+        });
+      }
+      debugPrint('ProfileScreen: _fetchUserProfile response: $response');
+      setState(() {
+        userProfile = response;
+        _loading = false;
+        if (userProfile != null) {
+          _nicknameController.text = userProfile!['nickname'] ?? '';
+          _fullnameController.text = userProfile!['full_name'] ?? '';
+          _companyController.text = userProfile!['company'] ?? '';
+        }
+      });
+    } catch (e) {
+      debugPrint('ProfileScreen: _fetchUserProfile error: $e');
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _saveProfile() async {
+    debugPrint('ProfileScreen: _saveProfile called');
     setState(() {
-      userProfile = response;
-      _loading = false;
+      _saving = true;
+      _error = null;
     });
+    final updates = {
+      'nickname': _nicknameController.text.trim(),
+      'full_name': _fullnameController.text.trim(),
+      'company': _companyController.text.trim(),
+    };
+    debugPrint('ProfileScreen: _saveProfile updates: $updates');
+    try {
+      await Supabase.instance.client
+          .from('users')
+          .update(updates)
+          .eq('id', userId);
+      debugPrint('ProfileScreen: _saveProfile update success');
+      await _fetchUserProfile();
+      setState(() {
+        _editMode = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile updated successfully!')),
+      );
+    } catch (e) {
+      debugPrint('ProfileScreen: _saveProfile error: $e');
+      setState(() {
+        _error = 'Failed to update profile.';
+      });
+    } finally {
+      setState(() {
+        _saving = false;
+      });
+      debugPrint('ProfileScreen: _saveProfile finished');
+    }
   }
 
   @override
@@ -97,18 +178,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           label: 'Nickname',
                           value: userProfile?['nickname'] ?? 'N/A',
                           icon: Icons.tag_faces,
+                          isEditing: _editMode,
+                          controller: _nicknameController,
                         ),
                         const SizedBox(height: 18),
                         _ProfileField(
                           label: 'Full Name',
                           value: userProfile?['full_name'] ?? 'N/A',
                           icon: Icons.person,
+                          isEditing: _editMode,
+                          controller: _fullnameController,
                         ),
                         const SizedBox(height: 18),
                         _ProfileField(
                           label: 'Company',
                           value: userProfile?['company'] ?? 'N/A',
                           icon: Icons.business,
+                          isEditing: _editMode,
+                          controller: _companyController,
                         ),
                         const SizedBox(height: 18),
                         _ProfileField(
@@ -132,30 +219,107 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   : '',
                           icon: Icons.calendar_today,
                         ),
+                        if (_error != null) ...[
+                          const SizedBox(height: 16),
+                          Text(
+                            _error!,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ],
                       ],
                     ),
                   ),
                 ),
               ),
               const SizedBox(height: 32),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 14,
+              _editMode
+                  ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: _saving ? null : _saveProfile,
+                        icon:
+                            _saving
+                                ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                                : const Icon(Icons.save),
+                        label: const Text('Save'),
+                      ),
+                      const SizedBox(width: 16),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.deepPurple,
+                          side: const BorderSide(color: Colors.deepPurple),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed:
+                            _saving
+                                ? null
+                                : () {
+                                  debugPrint(
+                                    'ProfileScreen: Cancel edit pressed',
+                                  );
+                                  setState(() {
+                                    _editMode = false;
+                                    _error = null;
+                                    // Reset controllers to original values
+                                    _nicknameController.text =
+                                        userProfile?['nickname'] ?? '';
+                                    _fullnameController.text =
+                                        userProfile?['full_name'] ?? '';
+                                    _companyController.text =
+                                        userProfile?['company'] ?? '';
+                                  });
+                                },
+                        icon: const Icon(Icons.cancel),
+                        label: const Text('Cancel'),
+                      ),
+                    ],
+                  )
+                  : ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      debugPrint('ProfileScreen: Edit Profile pressed');
+                      setState(() {
+                        _editMode = true;
+                      });
+                    },
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Edit Profile'),
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: () {
-                  // TODO: Implement edit functionality
-                },
-                icon: const Icon(Icons.edit),
-                label: const Text('Edit Profile'),
-              ),
             ],
           ),
         ),
@@ -168,10 +332,14 @@ class _ProfileField extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
+  final bool isEditing;
+  final TextEditingController? controller;
   const _ProfileField({
     required this.label,
     required this.value,
     required this.icon,
+    this.isEditing = false,
+    this.controller,
   });
 
   @override
@@ -194,13 +362,27 @@ class _ProfileField extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              isEditing && controller != null
+                  ? TextField(
+                    controller: controller,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 8,
+                      ),
+                    ),
+                  )
+                  : Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
             ],
           ),
         ),
