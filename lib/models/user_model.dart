@@ -9,6 +9,7 @@ class AppUser {
   final String? phone;
   final String? address;
   final String? role;
+  final String? profile_pic_url;
 
   AppUser({
     required this.id,
@@ -21,6 +22,7 @@ class AppUser {
     this.phone,
     this.address,
     this.role,
+    this.profile_pic_url,
   });
 
   factory AppUser.fromMap(Map<String, dynamic> map) {
@@ -38,6 +40,7 @@ class AppUser {
       phone: map['phone'] as String?,
       address: map['address'] as String?,
       role: map['role'] as String?,
+      profile_pic_url: map['profile_pic_url'] as String?,
     );
   }
 
@@ -53,6 +56,7 @@ class AppUser {
       'phone': phone,
       'address': address,
       'role': role,
+      'profile_pic_url': profile_pic_url,
     };
   }
 }

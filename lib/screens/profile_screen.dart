@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -18,6 +21,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late TextEditingController _fullnameController;
   late TextEditingController _companyController;
   String? _error;
+  String? _profilePicUrl;
+  File? _pickedImage;
 
   @override
   void initState() {
@@ -51,13 +56,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               .select()
               .eq('id', userId)
               .single();
-      if (response != null) {
-        setState(() {
-          _nicknameController.text = response['nickname'] ?? '';
-          _fullnameController.text = response['full_name'] ?? '';
-          _companyController.text = response['company'] ?? '';
-        });
-      }
+      setState(() {
+        _nicknameController.text = response['nickname'] ?? '';
+        _fullnameController.text = response['full_name'] ?? '';
+        _companyController.text = response['company'] ?? '';
+        _profilePicUrl = response['profile_pic_url'];
+      });
       debugPrint('ProfileScreen: _fetchUserProfile response: $response');
       setState(() {
         userProfile = response;
@@ -114,6 +118,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _pickAndUploadImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 100,
+    );
+    if (picked == null) return;
+
+    setState(() => _pickedImage = File(picked.path));
+
+    final fileExt = picked.path.split('.').last;
+    final fileName =
+        'profile_${userId}_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+    final storagePath = 'profile_pics/$fileName';
+
+    final bytes = await picked.readAsBytes();
+
+    try {
+      final response = await Supabase.instance.client.storage
+          .from('profile-pic-url')
+          .uploadBinary(
+            storagePath,
+            bytes,
+            fileOptions: const FileOptions(upsert: true),
+          );
+
+      // If uploadBinary returns a String, it's the file path. If it throws, it's an error.
+      final publicUrl = Supabase.instance.client.storage
+          .from('profile-pic-url')
+          .getPublicUrl(storagePath);
+
+      setState(() {
+        _profilePicUrl = publicUrl;
+      });
+
+      // Save URL to user profile
+      await Supabase.instance.client
+          .from('users')
+          .update({'profile_pic_url': publicUrl})
+          .eq('id', userId);
+      await _fetchUserProfile();
+    } catch (e) {
+      debugPrint("Error: ${e}");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to upload image: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -143,14 +196,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 32),
-              CircleAvatar(
-                radius: 48,
-                backgroundColor: Colors.deepPurple.shade100,
-                child: const Icon(
-                  Icons.person,
-                  color: Colors.deepPurple,
-                  size: 48,
-                ),
+              // Profile picture with edit button
+              Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  CircleAvatar(
+                    radius: 48,
+                    backgroundColor: Colors.deepPurple.shade100,
+                    backgroundImage:
+                        _pickedImage != null
+                            ? FileImage(_pickedImage!)
+                            : (_profilePicUrl != null &&
+                                        _profilePicUrl!.isNotEmpty
+                                    ? NetworkImage(_profilePicUrl!)
+                                    : null)
+                                as ImageProvider?,
+                    child:
+                        (_profilePicUrl == null || _profilePicUrl!.isEmpty) &&
+                                _pickedImage == null
+                            ? Text(
+                              (_nicknameController.text.isNotEmpty
+                                  ? _nicknameController.text[0].toUpperCase()
+                                  : '?'),
+                              style: TextStyle(
+                                color: Colors.deepPurple.shade700,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 36,
+                              ),
+                            )
+                            : null,
+                  ),
+                  if (_editMode)
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: InkWell(
+                        onTap: _pickAndUploadImage,
+                        child: CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Colors.deepPurple,
+                          child: Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(height: 24),
               SizedBox(
