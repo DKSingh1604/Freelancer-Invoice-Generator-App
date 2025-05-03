@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class ClientCard extends StatelessWidget {
   final Client client;
-  const ClientCard({required this.client});
+  const ClientCard({super.key, required this.client});
 
   @override
   Widget build(BuildContext context) {

@@ -3,7 +3,6 @@
 import 'package:fig_app/repositories/client_repository.dart'
     show ClientRepository;
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class InvoiceAddScreen extends StatefulWidget {

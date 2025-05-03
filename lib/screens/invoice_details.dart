@@ -240,7 +240,7 @@ class _DetailRow extends StatelessWidget {
 
 class InvoicePdfPreview extends StatefulWidget {
   final Invoice invoice;
-  const InvoicePdfPreview({Key? key, required this.invoice}) : super(key: key);
+  const InvoicePdfPreview({super.key, required this.invoice});
 
   @override
   State<InvoicePdfPreview> createState() => _InvoicePdfPreviewState();
@@ -437,7 +437,7 @@ class _InvoicePdfPreviewState extends State<InvoicePdfPreview> {
                         pw.Padding(
                           padding: const pw.EdgeInsets.all(8),
                           child: pw.Text(
-                            '${widget.invoice.amount?.toStringAsFixed(2) ?? '--'}',
+                            widget.invoice.amount?.toStringAsFixed(2) ?? '--',
                           ),
                         ),
                       ],

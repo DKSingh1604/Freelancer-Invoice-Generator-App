@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class InvoiceTile extends StatelessWidget {
   final Invoice invoice;
-  const InvoiceTile({required this.invoice});
+  const InvoiceTile({super.key, required this.invoice});
 
   @override
   Widget build(BuildContext context) {

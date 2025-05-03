@@ -160,7 +160,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .eq('id', userId);
       await _fetchUserProfile();
     } catch (e) {
-      debugPrint("Error: ${e}");
+      debugPrint("Error: $e");
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Failed to upload image: $e')));
