@@ -185,6 +185,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             gradient: LinearGradient(
               colors: [Color(0xFFB388FF), Color(0xFF7C4DFF)],
               begin: Alignment.topLeft,
+
               end: Alignment.bottomRight,
             ),
           ),
