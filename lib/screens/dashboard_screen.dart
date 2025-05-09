@@ -16,11 +16,13 @@ class DashboardScreen extends StatefulWidget {
   final String nickname;
   final String fullname;
   final String company;
+  final String? profilePicUrl;
   const DashboardScreen({
     super.key,
     required this.nickname,
     required this.fullname,
     required this.company,
+    this.profilePicUrl,
   });
 
   @override
@@ -69,9 +71,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.deepPurple, width: 2),
                   ),
-                  child: const CircleAvatar(
+                  child: CircleAvatar(
                     backgroundColor: Colors.white,
-                    child: Icon(Icons.person, color: Colors.deepPurple),
+                    backgroundImage:
+                        (widget.profilePicUrl != null &&
+                                widget.profilePicUrl!.isNotEmpty)
+                            ? NetworkImage(widget.profilePicUrl!)
+                            : null,
+                    child:
+                        (widget.profilePicUrl == null ||
+                                widget.profilePicUrl!.isEmpty)
+                            ? const Icon(Icons.person, color: Colors.deepPurple)
+                            : null,
                   ),
                 ),
                 onPressed: () {
@@ -121,19 +132,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 32,
-                    backgroundColor: Colors.white,
-                    child: Icon(
-                      Icons.person,
-                      color: Colors.deepPurple,
-                      size: 40,
+                  Center(
+                    child: CircleAvatar(
+                      radius: 36,
+                      backgroundColor: Colors.deepPurple.shade100,
+                      backgroundImage:
+                          (widget.profilePicUrl != null &&
+                                  widget.profilePicUrl!.isNotEmpty)
+                              ? NetworkImage(widget.profilePicUrl!)
+                              : null,
+                      child:
+                          (widget.profilePicUrl == null ||
+                                  widget.profilePicUrl!.isEmpty)
+                              ? const Icon(
+                                Icons.person,
+                                color: Colors.deepPurple,
+                                size: 36,
+                              )
+                              : null,
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Text(
                     'Welcome back, ${widget.nickname}!',
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.deepPurple,
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
@@ -168,21 +190,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
               },
             ),
             //RECENT INVOICES
-            ListTile(
-              leading: const Icon(Icons.description),
-              title: const Text('Recent Invoices'),
-              onTap: () {
-                // Navigate to settings
-              },
-            ),
+            // ListTile(
+            //   leading: const Icon(Icons.description),
+            //   title: const Text('Recent Invoices'),
+            //   onTap: () {
+            //     // Navigate to settings
+            //   },
+            // ),
             //RECENT CLIENTS
-            ListTile(
-              leading: const Icon(Icons.people),
-              title: const Text('Recent Clients'),
-              onTap: () {
-                // Navigate to settings
-              },
-            ),
+            // ListTile(
+            //   leading: const Icon(Icons.people),
+            //   title: const Text('Recent Clients'),
+            //   onTap: () {
+            //     // Navigate to settings
+            //   },
+            // ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout),

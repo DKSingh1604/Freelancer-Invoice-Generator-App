@@ -1,5 +1,6 @@
 {
     "editor.tokenColorCustomizations": {
         "comments": "#00FF00" // Replace with your desired color
-    }
+    },
+    "cmake.sourceDirectory": "C:/Users/dev16/OneDrive/Documents/fig_app/linux"
 }

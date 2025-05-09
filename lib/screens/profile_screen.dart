@@ -93,7 +93,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     };
     debugPrint('ProfileScreen: _saveProfile updates: $updates');
     try {
-      await Supabase.instance.client
+      final response = await Supabase.instance.client
           .from('users')
           .update(updates)
           .eq('id', userId);
@@ -107,8 +107,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     } catch (e) {
       debugPrint('ProfileScreen: _saveProfile error: $e');
-      setState(() {
+      setState(() async {
         _error = 'Failed to update profile.';
+        // Optionally, you can also call _fetchUserProfile() here to revert UI
+        await _fetchUserProfile();
       });
     } finally {
       setState(() {
