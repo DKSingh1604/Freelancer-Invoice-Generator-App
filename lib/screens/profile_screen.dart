@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -146,7 +145,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             fileOptions: const FileOptions(upsert: true),
           );
 
-      // If uploadBinary returns a String, it's the file path. If it throws, it's an error.
       final publicUrl = Supabase.instance.client.storage
           .from('profile-pic-url')
           .getPublicUrl(storagePath);
@@ -155,7 +153,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _profilePicUrl = publicUrl;
       });
 
-      // Save URL to user profile
       await Supabase.instance.client
           .from('users')
           .update({'profile_pic_url': publicUrl})
@@ -199,7 +196,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 32),
-              // Profile picture with edit button
+
               Stack(
                 alignment: Alignment.bottomRight,
                 children: [
