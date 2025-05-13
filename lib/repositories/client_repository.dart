@@ -5,7 +5,15 @@ class ClientRepository {
   final supabase = Supabase.instance.client;
 
   Future<List<Client>> fetchClients() async {
-    final data = await supabase.from('clients').select().order('name');
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      return [];
+    }
+    final data = await supabase
+        .from('clients')
+        .select()
+        .eq('user_id', userId)
+        .order('name');
 
     print('Fetched clients:');
     print(data);
